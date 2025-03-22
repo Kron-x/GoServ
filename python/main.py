@@ -1,7 +1,10 @@
 import subprocess
+import os
 
 def start_go_server():
-    # Start Go-service
+    # Переход в папку go
+    os.chdir("../go")
+    # Запуск Go-сервера
     subprocess.Popen(["go", "run", "main.go"])
 
 if __name__ == "__main__":
