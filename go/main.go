@@ -43,7 +43,31 @@ func loggingMiddleware(next http.Handler) http.Handler {
     })
 }
 
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	fmt.Fprintf(w, `
+		<h1>Welcome to the Image Server</h1>
+		<img src="/images/image1.jpg" alt="Image 1" width="300">
+		<img src="/images/image2.jpg" alt="Image 2" width="300">
+		<div style="position: fixed; bottom: 20px; right: 20px;">
+			<button onclick="window.open('/new-dimension', '_blank')">Перейти в новое измерение</button>
+		</div>
+	`)
+}
 
+func NewDimensionHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	currentTime := time.Now().Format("2006-01-02 15:04:05")
+	fmt.Fprintf(w, `
+		<h1>Вы попали в новое измерение, пристегнитесь</h1>
+		<p>Текущая дата и время: %s</p>
+	    `, currentTime)
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "OK")
+}
 
 func main() {
     config := loadConfig()
@@ -58,21 +82,11 @@ func main() {
 
     log.Printf("Starting server on port %s", config.Port)
 
-    http.Handle("/", loggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Content-Type", "text/html")
-        fmt.Fprintf(w, `
-            <h1>Welcome to the Image Server</h1>
-            <img src="/images/image1.jpg" alt="Image 1" width="300">
-            <img src="/images/image2.jpg" alt="Image 2" width="300">
-        `)
-    })))
-
+    http.Handle("/", loggingMiddleware(http.HandlerFunc(homeHandler)))
     http.Handle("/images/", loggingMiddleware(http.StripPrefix("/images/", http.FileServer(http.Dir(config.ImagesDir)))))
-
-    http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-        w.WriteHeader(http.StatusOK)
-        fmt.Fprintf(w, "OK")
-    })
+    http.HandleFunc("/new-dimension", newDimensionHandler)
+    http.HandleFunc("/health", healthHandler)
+	
 
     server := &http.Server{
         Addr: ":" + config.Port,
