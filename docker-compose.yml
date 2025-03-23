@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  go_server:
+    build:
+      context: ./go/  # Указываем текущую директорию как контекст сборки
+      dockerfile: Dockerfile  # Указываем имя Dockerfile
+    container_name: go_server  # Имя контейнера
+    ports:
+      - "8080:5000"  # Пробрасываем порт 5000 из контейнера на порт 8080 на хосте
+    volumes:
+      - ./logs/:/app/logs/  # Монтируем директорию logs с хоста в контейнер
