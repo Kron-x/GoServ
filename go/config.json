@@ -1,5 +1,5 @@
 {
-    "port": "8080",
+    "port": "5000",
     "images_dir": "images",
-    "log_file": "../logs/server.log"
+    "log_file": "server.log"
 }
