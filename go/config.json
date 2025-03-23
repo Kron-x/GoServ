@@ -1,0 +1,5 @@
+{
+    "port": "8080",
+    "images_dir": "images",
+    "log_file": "server.log"
+}
