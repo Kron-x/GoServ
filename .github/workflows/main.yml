@@ -26,5 +26,5 @@ jobs:
 
       - name: Run tests
         run: |
-          cd go/test
-          go test -v ./...
+          cd go/
+          go test -v
