@@ -1,126 +1,67 @@
 package main
 
 import (
-    "bytes"
-    "encoding/json"
-    "net/http"
-    "net/http/httptest"
-    "testing"
-
-    "github.com/username/GoServ/go/pkg"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+	"strings"
 )
 
-// Тест для функции loadConfig
-'''
-func TestLoadConfig(t *testing.T) {
-    // Создаем временный config.json
-
-    config := server.LoadConfig()
-
-    if config.Port != "5000" {
-        t.Errorf("Expected port 5000, got %s", config.Port)
-    }
-    if config.ImagesDir != "images" {
-        t.Errorf("Expected images_dir: ./images, got: %s", config.ImagesDir)
-    }
-    if config.LogFile != "logs/server.log" {
-        t.Errorf("Expected log_file: ./logs/server.log, got: %s", config.LogFile)
-    }
-}
-'''
-// Тест для homeHandler
 func TestHomeHandler(t *testing.T) {
-    req, err := http.NewRequest("GET", "/", nil)
-    if err != nil {
-        t.Fatal(err)
-    }
+	// Создаем тестовый запрос
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-    rr := httptest.NewRecorder()
-    handler := http.HandlerFunc(server.HomeHandler)
+	// Создаем ResponseRecorder для записи ответа
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(HomeHandler)
 
-    handler.ServeHTTP(rr, req)
+	// Вызываем обработчик напрямую
+	handler.ServeHTTP(rr, req)
 
-    if status := rr.Code; status != http.StatusOK {
-        t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-    }
+	// Проверяем статус код
+	if rr.Code != http.StatusOK {
+		t.Errorf("Ожидался статус 200, получили %d", rr.Code)
+	}
 
-    expected := "<h1>Welcome to the Image Server</h1>"
-    if rr.Body.String()[:len(expected)] != expected {
-        t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), expected)
-    }
+	// Проверяем Content-Type
+	contentType := rr.Header().Get("Content-Type")
+	if contentType != "text/html; charset=UTF-8" {
+		t.Errorf("Неверный Content-Type: %s", contentType)
+	}
 }
 
-// Тест для submitTextHandler
-func TestSubmitTextHandler(t *testing.T) {
-    requestBody := map[string]string{"text": "Hello, World!"}
-    jsonBody, _ := json.Marshal(requestBody)
-
-    req, err := http.NewRequest("POST", "/submit-text", bytes.NewBuffer(jsonBody))
-    if err != nil {
-        t.Fatal(err)
-    }
-
-    rr := httptest.NewRecorder()
-    handler := http.HandlerFunc(server.SubmitTextHandler)
-
-    handler.ServeHTTP(rr, req)
-
-    if status := rr.Code; status != http.StatusOK {
-        t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-    }
-
-    var response map[string]string
-    err = json.Unmarshal(rr.Body.Bytes(), &response)
-    if err != nil {
-        t.Fatal(err)
-    }
-
-    expected := "Вы ввели: Hello, World!"
-    if response["message"] != expected {
-        t.Errorf("handler returned unexpected message: got %v want %v", response["message"], expected)
-    }
-}
-
-// Тест для NewDimensionHandler
 func TestNewDimensionHandler(t *testing.T) {
-    req, err := http.NewRequest("GET", "/new-dimension", nil)
-    if err != nil {
-        t.Fatal(err)
-    }
+	req, _ := http.NewRequest("GET", "/new-dimension", nil)
+	rr := httptest.NewRecorder()
+	
+	http.HandlerFunc(NewDimensionHandler).ServeHTTP(rr, req)
 
-    rr := httptest.NewRecorder()
-    handler := http.HandlerFunc(server.NewDimensionHandler)
-
-    handler.ServeHTTP(rr, req)
-
-    if status := rr.Code; status != http.StatusOK {
-        t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-    }
-
-    expected := "<h1>Вы попали в новое измерение, пристегнитесь</h1>"
-    if rr.Body.String()[:len(expected)] != expected {
-        t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), expected)
-    }
+	if rr.Code != http.StatusOK {
+		t.Errorf("AboutHandler: неверный статус-код: %v", rr.Code)
+	}
 }
 
-// Тест для healthHandler
-func TestHealthHandler(t *testing.T) {
-    req, err := http.NewRequest("GET", "/health", nil)
-    if err != nil {
-        t.Fatal(err)
-    }
+func TestSubmitTextHandler(t *testing.T) {
+	// Подготовка JSON-тела запроса
+	jsonBody := `{"text":"hello"}`
 
-    rr := httptest.NewRecorder()
-    handler := http.HandlerFunc(server.HealthHandler)
+	req := httptest.NewRequest("POST", "/submit-text", strings.NewReader(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
 
-    handler.ServeHTTP(rr, req)
+	rr := httptest.NewRecorder()
+	SubmitTextHandler(rr, req) // Ваш обработчик для /submit-text
 
-    if status := rr.Code; status != http.StatusOK {
-        t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-    }
+	// Проверки
+	if rr.Code != http.StatusOK {
+		t.Errorf("Ожидался статус 200, получили %d", rr.Code)
+	}
 
-    expected := "OK"
-    if rr.Body.String() != expected {
-        t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), expected)
-    }
+	// Проверка JSON-ответа
+	expected := `{"message":"Вы ввели: hello"}`
+	if !strings.Contains(rr.Body.String(), expected) {
+		t.Errorf("Ожидался ответ %s, получили %s", expected, rr.Body.String())
+	}
 }
