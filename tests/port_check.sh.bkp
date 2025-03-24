@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Определяем путь к файлу docker-compose.yml
+DOCKER_COMPOSE_FILE="docker-compose.yml"
+
+# Проверяем, существует ли файл
+if [ ! -f "$DOCKER_COMPOSE_FILE" ]; then
+  echo "Файл $DOCKER_COMPOSE_FILE не найден!"
+  exit 1
+fi
+
+# Выполняем команду для извлечения значения портов
+grep -A1 ports "$DOCKER_COMPOSE_FILE" | grep '"' | grep -o '"[^"]*"' | tr -d '"'
