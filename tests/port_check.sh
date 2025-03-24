@@ -15,4 +15,5 @@ if [[ "$PORT_FIRST_FILE" == "$PORT_SECOND_FILE" ]]; then
   echo "Порты совпадают: $PORT_FIRST_FILE"
 else
   echo "Порты не совпадают! Первый файл: $PORT_FIRST_FILE, Второй файл: $PORT_SECOND_FILE"
+  exit 1
 fi
