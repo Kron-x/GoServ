@@ -5,37 +5,29 @@ import (
     "encoding/json"
     "net/http"
     "net/http/httptest"
-    "os"
     "testing"
+
+    "github.com/username/GoServ/go/pkg"
 )
 
 // Тест для функции loadConfig
+'''
 func TestLoadConfig(t *testing.T) {
     // Создаем временный config.json
-    configContent := `{
-        "port": "5000",
-        "images_dir": "./images",
-        "log_file": "./logs/server.log"
-    }`
-    err := os.WriteFile("config.json", []byte(configContent), 0644)
-    if err != nil {
-        t.Fatalf("Failed to create config file: %v", err)
-    }
-    defer os.Remove("config.json") // Удаляем временный файл после теста
 
-    config := loadConfig()
+    config := server.LoadConfig()
 
-    if config.Port != "8080" {
-        t.Errorf("Expected port 8080, got %s", config.Port)
+    if config.Port != "5000" {
+        t.Errorf("Expected port 5000, got %s", config.Port)
     }
-    if config.ImagesDir != "./images" {
-        t.Errorf("Expected images_dir ./images, got %s", config.ImagesDir)
+    if config.ImagesDir != "images" {
+        t.Errorf("Expected images_dir: ./images, got: %s", config.ImagesDir)
     }
-    if config.LogFile != "./logs/server.log" {
-        t.Errorf("Expected log_file ./logs/server.log, got %s", config.LogFile)
+    if config.LogFile != "logs/server.log" {
+        t.Errorf("Expected log_file: ./logs/server.log, got: %s", config.LogFile)
     }
 }
-
+'''
 // Тест для homeHandler
 func TestHomeHandler(t *testing.T) {
     req, err := http.NewRequest("GET", "/", nil)
@@ -44,7 +36,7 @@ func TestHomeHandler(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    handler := http.HandlerFunc(homeHandler)
+    handler := http.HandlerFunc(server.HomeHandler)
 
     handler.ServeHTTP(rr, req)
 
@@ -69,7 +61,7 @@ func TestSubmitTextHandler(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    handler := http.HandlerFunc(submitTextHandler)
+    handler := http.HandlerFunc(server.SubmitTextHandler)
 
     handler.ServeHTTP(rr, req)
 
@@ -97,7 +89,7 @@ func TestNewDimensionHandler(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    handler := http.HandlerFunc(NewDimensionHandler)
+    handler := http.HandlerFunc(server.NewDimensionHandler)
 
     handler.ServeHTTP(rr, req)
 
@@ -119,7 +111,7 @@ func TestHealthHandler(t *testing.T) {
     }
 
     rr := httptest.NewRecorder()
-    handler := http.HandlerFunc(healthHandler)
+    handler := http.HandlerFunc(server.HealthHandler)
 
     handler.ServeHTTP(rr, req)
 

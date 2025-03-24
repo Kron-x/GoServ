@@ -3,7 +3,7 @@ FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod main.go .
+COPY go.mod main.go conf.go handlers.go .
 
 ENV CGO_ENABLED = 0
 
@@ -17,9 +17,11 @@ WORKDIR /app
 # Копируем скомпилированный бинарник из стадии builder
 COPY --from=builder /app/main .
 
-COPY config.json images/ .
+COPY config.json .
 
-RUN mkdir -p ./logs/
+COPY images/ ./images/
+
+RUN mkdir -p ./logs
 
 EXPOSE 5000
 
