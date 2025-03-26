@@ -44,7 +44,9 @@
     - name: Clone repository  
       git:  
         repo: "{{ repo_url }}"  
-        dest: "{{ app_dir }}"  
+        dest: "{{ app_dir }}"
+        clone: yes
+        update: yes   
 
     - name: Run Docker Compose  
       command: docker compose up -d  
