@@ -47,15 +47,15 @@ jobs:
           script: |
             mkdir -p ${{ env.REMOTE_DIR }}  # -p гарантирует создание вложенных путей
             chmod 755 ${{ env.REMOTE_DIR }}  # Выставляем корректные права
-
-      - name: Copy files to server
-        uses: appleboy/scp-action@v1
+      
+      - name: copy file to server
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_DNS }}
           username: deployer
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "deploy-docker.yml,ansible.cfg"
-          target: ${{ env.REMOTE_DIR }}
+          target: ${{ env.REMOTE_DIR }} 
 
       - name: executing remote ssh commands using key
         uses: appleboy/ssh-action@v1
