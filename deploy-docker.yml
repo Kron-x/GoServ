@@ -42,15 +42,21 @@
         state: started  
         enabled: yes  
 
-    - name: Clone repository  
-      git:  
-        repo: "{{ repo_url }}"  
+    - name: Check if repo exists
+      stat:
+        path: "{{ app_dir }}/.git"
+      register: repo_exists
+
+    - name: Clone or update repo
+      git:
+        repo: "{{ repo_url }}"
         dest: "{{ app_dir }}"
-        clone: yes
-        update: yes   
+        update: "{{ repo_exists.stat.exists }}"
+        force: yes
+        version: "main"   
 
     - name: Run Docker Compose  
-      command: docker compose up -d  
+      command: docker compose up -d --force-recreate 
       args:  
         chdir: "{{ app_dir }}"  
 
