@@ -1,0 +1,57 @@
+---
+- name: Deploy GoServ via Docker Compose    
+  become: yes  
+
+  vars: 
+    docker_key_dir: /usr/share/keyrings 
+    repo_url: "https://github.com/Kron-x/GoServ.git"  
+    app_dir: "{{ ansible_user_dir }}/server"  # файл с рабочим серавком
+
+  tasks:  
+    - name: Ensure keyring directory exists
+      file:
+        path: "{{ docker_key_dir }}"
+        state: directory
+        mode: 0755
+
+    - name: Download Docker GPG key (proper way)
+      ansible.builtin.get_url:
+        url: "https://download.docker.com/linux/ubuntu/gpg"
+        dest: "{{ docker_key_dir }}/docker-archive-keyring.gpg"
+        mode: "0644"
+
+    - name: Add Docker repository (secure way)
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by={{ docker_key_dir }}/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu noble stable"
+        state: present
+        filename: "docker"
+
+    - name: Install Docker & Docker Compose (v2)
+      apt:  
+        name:  
+          - docker-ce  
+          - docker-ce-cli  
+          - containerd.io
+          - docker-compose-plugin  
+        state: present    
+
+    - name: Ensure Docker is running  
+      service:  
+        name: docker  
+        state: started  
+        enabled: yes  
+
+    - name: Clone repository  
+      git:  
+        repo: "{{ repo_url }}"  
+        dest: "{{ app_dir }}"  
+
+    - name: Run Docker Compose  
+      command: docker compose up -d  
+      args:  
+        chdir: "{{ app_dir }}"  
+
+    - name: Ensure Docker Compose restarts on reboot  
+      systemd:  
+        name: docker  
+        enabled: yes  
