@@ -33,10 +33,29 @@ jobs:
     runs-on: ubuntu-latest
     needs: tests
     env:  
-      REMOTE_DIR: "/tmp"  
+      REMOTE_DIR: "/tmp/ans"  
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      
+      - name: Create remote directory  # Создаем директорию на сервере
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_DNS }}
+          username: deployer
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p ${{ env.REMOTE_DIR }}  # -p гарантирует создание вложенных путей
+            chmod 755 ${{ env.REMOTE_DIR }}  # Выставляем корректные права
+
+      - name: Copy files to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SERVER_DNS }}
+          username: deployer
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "deploy-docker.yml,ansible.cfg"
+          target: ${{ env.REMOTE_DIR }}
 
       - name: executing remote ssh commands using key
         uses: appleboy/ssh-action@v1
@@ -45,8 +64,8 @@ jobs:
           username: deployer
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo apt update && sudo apt install -y ansible
-            scp -r ./deploy-docker.yml ./ansible.cfg deployer@${{ secrets.SERVER_DNS }}:${{ env.REMOTE_DIR }}/
+            sudo apt update && \
+            { dpkg -s ansible &> /dev/null && sudo apt install --only-upgrade -y ansible || sudo apt install -y ansible; }
             ANSIBLE_CONFIG=${{ env.REMOTE_DIR }}/ansible.cfg ansible-playbook ${{ env.REMOTE_DIR }}/deploy-docker.yml
 
       
