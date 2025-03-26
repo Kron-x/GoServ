@@ -1,5 +1,6 @@
 ---
 - name: Deploy GoServ via Docker Compose    
+  hosts: localhost
   become: yes  
 
   vars: 
